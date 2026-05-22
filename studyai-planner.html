@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyAI Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f5f0;--bg1:#ffffff;--bg2:#f0ede8;--bg3:#e8e4dd;--ink:#1a1814;--ink2:#4a4640;--ink3:#9a948c;--accent:#c8502a;--accent2:#e8a882;--green:#2d6a4f;--green-l:#d8f3dc;--amber:#b5621a;--amber-l:#fdebd0;--blue:#1d4e8a;--blue-l:#dbeafe;--muted:#c8c4bc;--font:'DM Sans',sans-serif;--serif:'DM Serif Display',serif;--mono:'Fira Code',monospace;--r:12px;--r-lg:18px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh;font-size:15px}
+.wrap{max-width:1100px;margin:0 auto;padding:2.5rem 2rem 5rem}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{width:44px;height:44px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:3px 3px 0 #8a2c12}
+.brand-name{font-family:var(--serif);font-size:1.7rem;line-height:1}
+.brand-name em{color:var(--accent);font-style:normal}
+.brand-sub{font-size:0.72rem;font-family:var(--mono);color:var(--ink3);margin-top:3px;letter-spacing:1px}
+
+/* Stepper */
+.stepper{display:flex;align-items:center;margin-bottom:2.5rem}
+.step-item{display:flex;align-items:center;flex:1;cursor:pointer;transition:transform 0.2s}
+.step-item:hover{transform:translateY(-2px)}
+.step-item:last-child{flex:0}
+.step-btn{display:flex;align-items:center;gap:10px;padding:10px 20px 10px 10px;border-radius:50px;border:1.5px solid var(--muted);background:var(--bg1);transition:all 0.3s}
+.step-btn.active{border-color:var(--accent);background:#fff5f2;box-shadow:2px 2px 0 var(--accent2)}
+.step-btn.done{border-color:var(--green);background:var(--green-l)}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.68rem;background:var(--bg2);color:var(--ink3);transition:all 0.3s}
+.step-btn.active .step-num{background:var(--accent);color:#fff}
+.step-btn.done .step-num{background:var(--green);color:#fff}
+.step-text{font-size:0.82rem;font-weight:500}
+.step-line{flex:1;height:1.5px;background:var(--muted);margin:0 8px;transition:all 0.3s}
+.step-line.done{background:var(--green)}
+
+/* Card */
+.card{background:var(--bg1);border:1.5px solid var(--bg3);border-radius:var(--r-lg);padding:2rem;box-shadow:4px 4px 0 var(--bg2)}
+.card-head{display:flex;align-items:center;gap:14px;margin-bottom:1.75rem}
+.card-icon{width:40px;height:40px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.card-title{font-size:1.1rem;font-weight:600}
+.card-sub{font-size:0.78rem;color:var(--ink3);margin-top:1px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0.72rem 1.75rem;border-radius:50px;font-family:var(--font);font-size:0.88rem;font-weight:600;cursor:pointer;border:none;transition:all 0.18s}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:2px 2px 0 #8a2c12}
+.btn-primary:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #8a2c12}
+.btn-ghost{background:transparent;border:1.5px solid var(--bg3);font-size:0.8rem;padding:0.5rem 1.2rem;color:var(--ink2);transition:all 0.2s}
+.btn-ghost:hover{background:var(--bg2);color:var(--ink);border-color:var(--muted)}
+.btn-green{background:var(--green);color:#fff;box-shadow:2px 2px 0 #1a4a32}
+.btn-green:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1a4a32}
+.btn-row{display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.75rem;padding-top:1.5rem;border-top:1.5px solid var(--bg2)}
+
+/* Drop zone */
+.drop-zone{border:2px dashed var(--muted);border-radius:var(--r);padding:2.5rem 2rem;text-align:center;cursor:pointer;background:var(--bg);transition:all 0.2s;position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:#fff5f2}
+.drop-zone-icon{font-size:2rem;margin-bottom:0.5rem}
+.drop-zone-text{font-size:0.9rem;color:var(--ink2);font-weight:500}
+.drop-zone-sub{font-size:0.75rem;color:var(--ink3);margin-top:4px}
+input[type=file]{display:none}
+
+/* File list */
+.file-list{margin-top:1rem;display:flex;flex-direction:column;gap:8px}
+.file-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border:1.5px solid var(--bg3);border-radius:var(--r);transition:all 0.2s}
+.file-item:hover{border-color:var(--muted)}
+.file-item-icon{font-size:1.1rem;flex-shrink:0}
+.file-item-name{flex:1;font-size:0.85rem;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item-size{font-size:0.72rem;color:var(--ink3);font-family:var(--mono);flex-shrink:0}
+.file-item-remove{width:22px;height:22px;border-radius:50%;background:var(--bg3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--ink3);transition:all 0.15s;flex-shrink:0}
+.file-item-remove:hover{background:var(--accent);color:#fff}
+
+/* Textarea */
+textarea{width:100%;background:var(--bg);border:1.5px solid var(--bg3);border-radius:var(--r);padding:1rem;font-family:var(--font);font-size:0.88rem;outline:none;resize:none;height:100px;margin-top:1rem;transition:all 0.2s}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,80,42,0.1)}
+.divider{display:flex;align-items:center;gap:12px;margin:1rem 0;color:var(--ink3);font-size:0.78rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bg3)}
+
+/* Calendar */
+.cal-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px}
+.cal-stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;font-family:var(--mono)}
+.stat-q1{background:#fde8e8;color:#a32d2d}
+.stat-q2{background:var(--blue-l);color:var(--blue)}
+.stat-q3{background:var(--amber-l);color:var(--amber)}
+.stat-total{background:var(--bg2);color:var(--ink2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:0.5rem}
+.cal-day-header{text-align:center;font-size:0.7rem;font-weight:700;color:var(--ink3);padding:6px 0;letter-spacing:0.5px}
+.cal-month-row{grid-column:1/-1;font-family:var(--serif);font-size:1rem;color:var(--accent);padding:14px 4px 6px;border-bottom:1.5px solid var(--bg3);display:flex;align-items:center;gap:10px}
+.cal-month-row span{font-size:0.72rem;font-family:var(--mono);color:var(--ink3);font-style:normal}
+.cal-cell{min-height:68px;background:var(--bg1);border:1.5px solid var(--bg2);border-radius:10px;padding:5px;cursor:pointer;transition:all 0.18s}
+.cal-cell:hover{border-color:var(--accent2);box-shadow:2px 2px 0 var(--bg3);transform:translateY(-1px)}
+.cal-cell.has-task{border-color:var(--accent2);background:#fffaf8}
+.cal-cell.today{border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,80,42,0.2);background:#fff8f6}
+.cal-cell.other-month{opacity:0.35}
+.cal-date-num{font-size:0.8rem;font-weight:700;color:var(--ink2);line-height:1}
+.cal-date-month{font-size:0.55rem;color:var(--ink3);margin-top:1px}
+.cal-event{font-size:0.58rem;padding:2px 5px;margin-top:3px;border-radius:5px;color:#fff;cursor:pointer;transition:all 0.1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-event:hover{filter:brightness(1.15)}
+
+/* Tags */
+.tag{font-family:var(--mono);font-size:0.6rem;padding:2px 9px;border-radius:20px;border:1px solid}
+.tag-q1{background:#fde8e8;color:#a32d2d;border-color:#f0b0b0}
+.tag-q2{background:var(--blue-l);color:var(--blue);border-color:#b0c8f0}
+.tag-q3{background:var(--amber-l);color:var(--amber);border-color:#f0c080}
+.tag-q4{background:var(--bg2);color:var(--ink3);border-color:var(--muted)}
+
+/* Loading */
+.ai-loading{text-align:center;padding:4rem 1rem}
+.ai-loading-title{font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:6px}
+.ai-loading-sub{font-size:0.82rem;color:var(--ink3)}
+.spinner-wrap{position:relative;width:48px;height:48px;margin:0 auto 1.5rem}
+.spinner-outer{width:48px;height:48px;border:2px solid var(--bg2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+.spinner-inner{position:absolute;top:8px;left:8px;width:32px;height:32px;border:2px solid var(--bg2);border-bottom-color:var(--accent2);border-radius:50%;animation:spin 0.7s linear infinite reverse}
+.progress-bar{width:200px;height:4px;background:var(--bg3);border-radius:2px;margin:1rem auto 0;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;animation:progress 3s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes progress{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+
+/* Add mode banner */
+.add-mode-banner{background:linear-gradient(135deg,#fff5f2,#fdebd0);border:1.5px solid var(--accent2);border-radius:var(--r);padding:12px 16px;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;font-size:0.85rem}
+.add-mode-banner strong{color:var(--accent)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;justify-content:center;align-items:center;padding:1rem}
+.modal-box{background:var(--bg1);border:1.5px solid var(--bg3);border-radius:var(--r-lg);padding:2rem;width:460px;max-width:100%;box-shadow:8px 8px 0 var(--bg3);max-height:80vh;overflow-y:auto}
+.modal-task-name{font-family:var(--serif);font-size:1.2rem;color:var(--accent);margin-bottom:1rem}
+.modal-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:0.85rem}
+.modal-label{color:var(--ink3);font-weight:500;min-width:120px;flex-shrink:0}
+.modal-val{color:var(--ink2)}
+</style>
+<link rel="icon" href="data:,">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark">🎯</div>
+      <div>
+        <div class="brand-name">Study<em>AI</em></div>
+        <div class="brand-sub">// syllabus planner</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="logout()">ล็อกเอาท์ 🚪</button>
+  </div>
+
+  <div class="stepper">
+    <div class="step-item" onclick="goToStep1(false)">
+      <div class="step-btn active" id="stBtn1"><div class="step-num">01</div><span class="step-text">อัปโหลด Syllabus</span></div>
+    </div>
+    <div class="step-line" id="stLine1"></div>
+    <div class="step-item">
+      <div class="step-btn" id="stBtn2"><div class="step-num">02</div><span class="step-text">ประมวลผลด้วย AI</span></div>
+    </div>
+    <div class="step-line" id="stLine2"></div>
+    <div class="step-item" onclick="if(window.globalTasks.length>0) showStep(3)">
+      <div class="step-btn" id="stBtn3"><div class="step-num">03</div><span class="step-text">ตารางเรียน</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1">
+    <div id="addModeBanner" class="add-mode-banner" style="display:none">
+      <span>➕</span>
+      <div>กำลังอยู่ใน <strong>โหมดเพิ่มวิชา</strong> — งานใหม่จะถูกรวมเข้ากับตารางเดิม
+        <button class="btn btn-ghost" style="margin-left:10px;padding:3px 10px;font-size:0.75rem" onclick="showStep(3)">ดูตารางเดิม</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">📂</div>
+        <div>
+          <div class="card-title" id="step1Title">อัปโหลด Course Syllabus</div>
+          <div class="card-sub">รองรับหลายไฟล์พร้อมกัน — PDF, DOCX, TXT, PNG, JPG</div>
+        </div>
+      </div>
+
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-zone-icon">📁</div>
+        <div class="drop-zone-text">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</div>
+        <div class="drop-zone-sub">PDF · DOCX · TXT · PNG · JPG — เลือกได้หลายไฟล์</div>
+        <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
+      </div>
+
+      <div class="file-list" id="fileList"></div>
+
+      <div class="divider">หรือ</div>
+
+      <textarea id="textInput" placeholder="คัดลอกข้อความจาก Syllabus มาวางที่นี่..."></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="clearAll()">ล้างทั้งหมด</button>
+        <button class="btn btn-primary" onclick="analyzeData()" id="analyzeBtn">วิเคราะห์ด้วย AI ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" style="display:none">
+    <div class="card">
+      <div class="ai-loading">
+        <div class="spinner-wrap">
+          <div class="spinner-outer"></div>
+          <div class="spinner-inner"></div>
+        </div>
+        <div class="ai-loading-title">AI กำลังวิเคราะห์...</div>
+        <div class="ai-loading-sub" id="loadingStatus">กำลังประมวลผล Syllabus</div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" style="display:none">
+    <div class="card">
+      <div class="card-head" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="card-icon">📅</div>
+          <div>
+            <div class="card-title">ตารางการเรียนของคุณ</div>
+            <div class="card-sub">คลิกที่งานเพื่อดูรายละเอียด · คลิกที่วันเพื่อดูภาพรวม</div>
+          </div>
+        </div>
+        <button class="btn btn-green" onclick="goToStep1(true)">➕ เพิ่มวิชา</button>
+      </div>
+
+      <div class="cal-toolbar">
+        <div class="cal-stats" id="calStats"></div>
+      </div>
+
+      <div id="calGrid" class="cal-grid"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal-box">
+    <div id="modalContent"></div>
+    <button onclick="document.getElementById('taskModal').style.display='none'" class="btn btn-primary" style="margin-top:1.25rem;width:100%">ปิด</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { firebaseConfig } from './firebase-config.js';
+
+  let app = null, db = null, auth = null;
+  try {
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+    }
+  } catch(e) { console.error("Firebase Init Error:", e); }
+
+  window.globalTasks = [];
+  let selectedFiles = [];
+  let isAddMode = false;
+
+  // ---- Auth ----
+  window.logout = async function() {
+    try { if(auth) await signOut(auth); } catch(e) {}
+    window.location.href = 'login.html';
+  };
+
+  // ---- Step navigation ----
+  window.showStep = function(n) {
+    document.getElementById('step1').style.display = n===1 ? 'block' : 'none';
+    document.getElementById('step2').style.display = n===2 ? 'block' : 'none';
+    document.getElementById('step3').style.display = n===3 ? 'block' : 'none';
+    ['stBtn1','stBtn2','stBtn3'].forEach(function(id){ document.getElementById(id).classList.remove('active','done'); });
+    ['stLine1','stLine2'].forEach(function(id){ document.getElementById(id).classList.remove('done'); });
+    if(n===1){ document.getElementById('stBtn1').classList.add('active'); }
+    else if(n===2){ document.getElementById('stBtn1').classList.add('done'); document.getElementById('stLine1').classList.add('done'); document.getElementById('stBtn2').classList.add('active'); }
+    else if(n===3){ document.getElementById('stBtn1').classList.add('done'); document.getElementById('stLine1').classList.add('done'); document.getElementById('stBtn2').classList.add('done'); document.getElementById('stLine2').classList.add('done'); document.getElementById('stBtn3').classList.add('active'); }
+  };
+
+  window.goToStep1 = function(addMode) {
+    isAddMode = !!addMode;
+    selectedFiles = [];
+    document.getElementById('fileInput').value = '';
+    document.getElementById('textInput').value = '';
+    document.getElementById('fileList').innerHTML = '';
+    document.getElementById('addModeBanner').style.display = addMode ? 'flex' : 'none';
+    document.getElementById('step1Title').textContent = addMode ? 'เพิ่ม Syllabus วิชาใหม่' : 'อัปโหลด Course Syllabus';
+    window.showStep(1);
+  };
+
+  window.clearAll = function() {
+    selectedFiles = [];
+    document.getElementById('fileInput').value = '';
+    document.getElementById('textInput').value = '';
+    renderFileList();
+  };
+
+  // ---- File handling ----
+  function getFileIcon(name) {
+    var ext = name.split('.').pop().toLowerCase();
+    if(ext==='pdf') return '📕';
+    if(ext==='docx'||ext==='doc') return '📘';
+    if(ext==='txt') return '📄';
+    if(ext==='png'||ext==='jpg'||ext==='jpeg') return '🖼';
+    return '📎';
+  }
+
+  function formatSize(bytes) {
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/(1024*1024)).toFixed(1) + ' MB';
+  }
+
+  function renderFileList() {
+    var list = document.getElementById('fileList');
+    list.innerHTML = '';
+    var dz = document.getElementById('dropZone');
+    if(selectedFiles.length === 0) {
+      dz.style.borderColor = '';
+      dz.style.background = '';
+      return;
+    }
+    dz.style.borderColor = 'var(--green)';
+    dz.style.background = 'var(--green-l)';
+    selectedFiles.forEach(function(f, i) {
+      var item = document.createElement('div');
+      item.className = 'file-item';
+      var icon = document.createElement('span');
+      icon.className = 'file-item-icon';
+      icon.textContent = getFileIcon(f.name);
+      var name = document.createElement('span');
+      name.className = 'file-item-name';
+      name.textContent = f.name;
+      name.title = f.name;
+      var size = document.createElement('span');
+      size.className = 'file-item-size';
+      size.textContent = formatSize(f.size);
+      var rm = document.createElement('button');
+      rm.className = 'file-item-remove';
+      rm.textContent = '✕';
+      rm.title = 'ลบไฟล์นี้';
+      rm.onclick = (function(idx){ return function(e){ e.stopPropagation(); selectedFiles.splice(idx,1); renderFileList(); }; })(i);
+      item.appendChild(icon);
+      item.appendChild(name);
+      item.appendChild(size);
+      item.appendChild(rm);
+      list.appendChild(item);
+    });
+  }
+
+  function addFiles(files) {
+    for(var i=0;i<files.length;i++){
+      var f = files[i];
+      var exists = selectedFiles.some(function(x){ return x.name===f.name && x.size===f.size; });
+      if(!exists) selectedFiles.push(f);
+    }
+    renderFileList();
+  }
+
+  document.getElementById('fileInput').addEventListener('change', function() {
+    addFiles(this.files);
+  });
+
+  var dz = document.getElementById('dropZone');
+  dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', function(e){ e.preventDefault(); dz.classList.remove('drag-over'); });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    if(e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files);
+  });
+
+  // ---- Analyze ----
+  window.analyzeData = async function() {
+    var textInput = document.getElementById('textInput').value.trim();
+    if(selectedFiles.length === 0 && !textInput) {
+      alert('กรุณาเลือกไฟล์หรือกรอกข้อความก่อนวิเคราะห์');
+      return;
+    }
+
+    window.showStep(2);
+    var newTasks = [];
+    var total = selectedFiles.length + (textInput ? 1 : 0);
+    var done = 0;
+
+    function setStatus(msg) { document.getElementById('loadingStatus').textContent = msg; }
+
+    try {
+      // Process each file
+      for(var fi=0; fi<selectedFiles.length; fi++) {
+        var f = selectedFiles[fi];
+        setStatus('กำลังวิเคราะห์: ' + f.name + ' (' + (fi+1) + '/' + total + ')');
+        var formData = new FormData();
+        formData.append('file', f);
+        var controller = new AbortController();
+        var tid = setTimeout(function(){ controller.abort(); }, 90000);
+        var res = await fetch('http://127.0.0.1:8000/api/analyze-file', {method:'POST', body:formData, signal:controller.signal});
+        clearTimeout(tid);
+        if(!res.ok) { var e = await res.json().catch(function(){return {};}); throw new Error(e.detail || 'Error ' + res.status); }
+        var data = await res.json();
+        newTasks = newTasks.concat(data.tasks || []);
+        done++;
+      }
+
+      // Process text
+      if(textInput) {
+        setStatus('กำลังวิเคราะห์ข้อความ... (' + total + '/' + total + ')');
+        var formData2 = new FormData();
+        formData2.append('text', textInput);
+        var controller2 = new AbortController();
+        var tid2 = setTimeout(function(){ controller2.abort(); }, 90000);
+        var res2 = await fetch('http://127.0.0.1:8000/api/analyze-text', {method:'POST', body:formData2, signal:controller2.signal});
+        clearTimeout(tid2);
+        if(!res2.ok) { var e2 = await res2.json().catch(function(){return {};}); throw new Error(e2.detail || 'Error ' + res2.status); }
+        var data2 = await res2.json();
+        newTasks = newTasks.concat(data2.tasks || []);
+      }
+
+      // Merge or replace
+      if(isAddMode && window.globalTasks.length > 0) {
+        var existing = window.globalTasks.map(function(t){ return t.name.toLowerCase(); });
+        var added = newTasks.filter(function(t){ return !existing.includes(t.name.toLowerCase()); });
+        window.globalTasks = window.globalTasks.concat(added);
+      } else {
+        window.globalTasks = newTasks;
+      }
+
+      if(db && window.globalTasks.length > 0) {
+        addDoc(collection(db,'schedules'),{createdAt:new Date(),tasks:window.globalTasks}).catch(function(e){ console.warn('Firestore:',e); });
+      }
+
+      window.showStep(3);
+      window.renderCalendar();
+
+    } catch(err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+      window.showStep(1);
+    }
+  };
+
+  // ---- Calendar ----
+  window.renderCalendar = function() {
+    var grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    // Stats
+    var stats = document.getElementById('calStats');
+    stats.innerHTML = '';
+    var q1 = window.globalTasks.filter(function(t){return t.quadrant==='q1';}).length;
+    var q2 = window.globalTasks.filter(function(t){return t.quadrant==='q2';}).length;
+    var total = window.globalTasks.length;
+    function chip(cls, txt) {
+      var c = document.createElement('span');
+      c.className = 'stat-chip ' + cls;
+      c.textContent = txt;
+      stats.appendChild(c);
+    }
+    chip('stat-total', '📋 งานทั้งหมด ' + total + ' รายการ');
+    if(q1>0) chip('stat-q1', '🔴 เร่งด่วน ' + q1);
+    if(q2>0) chip('stat-q2', '🔵 สำคัญ ' + q2);
+
+    var tasksWithDate = window.globalTasks.filter(function(t){return t.deadline;});
+    if(tasksWithDate.length === 0) {
+      var msg = document.createElement('p');
+      msg.style.cssText = 'color:var(--ink3);padding:2rem;grid-column:1/-1;text-align:center';
+      msg.textContent = 'ไม่พบงานที่มีกำหนดส่งที่ระบุวันที่';
+      grid.appendChild(msg);
+      return;
+    }
+
+    var dates = tasksWithDate.map(function(t){return new Date(t.deadline);});
+    var minDate = new Date(Math.min.apply(null,dates));
+    var maxDate = new Date(Math.max.apply(null,dates));
+    minDate.setDate(1);
+    maxDate.setMonth(maxDate.getMonth()+1, 0);
+
+    var today = new Date().toISOString().split('T')[0];
+    var DAY = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+    DAY.forEach(function(d){
+      var h = document.createElement('div');
+      h.className = 'cal-day-header';
+      h.textContent = d;
+      grid.appendChild(h);
+    });
+
+    var lastMonth = -1;
+    var cur = new Date(minDate);
+    while(cur <= maxDate) {
+      var dateStr = cur.toISOString().split('T')[0];
+      var tasksToday = window.globalTasks.filter(function(t){return t.deadline===dateStr;});
+      var dayNum = cur.getDate();
+      var monthNum = cur.getMonth();
+
+      if(dayNum===1 && monthNum!==lastMonth) {
+        lastMonth = monthNum;
+        var mh = document.createElement('div');
+        mh.className = 'cal-month-row';
+        var tasksInMonth = window.globalTasks.filter(function(t){
+          return t.deadline && t.deadline.startsWith(cur.getFullYear()+'-'+(monthNum<9?'0':'')+(monthNum+1));
+        }).length;
+        mh.textContent = cur.toLocaleString('th-TH',{month:'long',year:'numeric'});
+        if(tasksInMonth>0){
+          var mc = document.createElement('span');
+          mc.textContent = tasksInMonth + ' งาน';
+          mh.appendChild(mc);
+        }
+        grid.appendChild(mh);
+        var pad = cur.getDay();
+        for(var p=0;p<pad;p++) grid.appendChild(document.createElement('div'));
+      }
+
+      var cell = document.createElement('div');
+      var cls = 'cal-cell';
+      if(tasksToday.length>0) cls += ' has-task';
+      if(dateStr===today) cls += ' today';
+      cell.className = cls;
+
+      var numEl = document.createElement('div');
+      numEl.className = 'cal-date-num';
+      numEl.textContent = dayNum;
+      cell.appendChild(numEl);
+
+      if(dayNum===1){
+        var mEl = document.createElement('div');
+        mEl.className = 'cal-date-month';
+        mEl.textContent = cur.toLocaleString('th-TH',{month:'short'});
+        cell.appendChild(mEl);
+      }
+
+      cell.onclick = (function(ds, tt){ return function(){ window.showDayDetail(ds,tt); }; })(dateStr, tasksToday);
+
+      tasksToday.forEach(function(task){
+        var ev = document.createElement('div');
+        ev.className = 'cal-event';
+        var bg = '#9a948c';
+        if(task.quadrant==='q1') bg='#c8502a';
+        else if(task.quadrant==='q2') bg='#1d4e8a';
+        else if(task.quadrant==='q3') bg='#b5621a';
+        ev.style.backgroundColor = bg;
+        ev.textContent = task.name;
+        ev.title = task.name;
+        ev.onclick = (function(t){ return function(e){ e.stopPropagation(); window.showTaskDetail(t); }; })(task);
+        cell.appendChild(ev);
+      });
+
+      grid.appendChild(cell);
+      cur.setDate(cur.getDate()+1);
+    }
+  };
+
+  // ---- Modals ----
+  window.showDayDetail = function(dateStr, tasksToday) {
+    var c = document.getElementById('modalContent');
+    c.innerHTML = '';
+    var h = document.createElement('h3');
+    h.style.cssText = 'font-family:var(--serif);font-size:1.1rem;color:var(--ink);margin-bottom:1rem';
+    h.textContent = 'วันที่ ' + dateStr;
+    c.appendChild(h);
+    if(tasksToday.length===0){
+      var p = document.createElement('p');
+      p.style.cssText = 'color:var(--ink3);font-size:0.9rem';
+      p.textContent = 'ไม่มีงานหรือการสอบในวันนี้';
+      c.appendChild(p);
+    } else {
+      tasksToday.forEach(function(task){
+        var d = document.createElement('div');
+        d.style.cssText = 'padding:10px 0;border-bottom:1px dashed var(--bg3);cursor:pointer';
+        d.onclick = function(){ window.showTaskDetail(task); };
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:4px';
+        var dot = document.createElement('span');
+        dot.style.cssText = 'width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + (task.quadrant==='q1'?'#c8502a':task.quadrant==='q2'?'#1d4e8a':task.quadrant==='q3'?'#b5621a':'#9a948c');
+        var nm = document.createElement('span');
+        nm.style.cssText = 'font-weight:600;font-size:0.9rem';
+        nm.textContent = task.name;
+        var tg = document.createElement('span');
+        tg.className = 'tag tag-' + task.quadrant;
+        tg.textContent = task.type;
+        row.appendChild(dot); row.appendChild(nm); row.appendChild(tg);
+        var sub = document.createElement('div');
+        sub.style.cssText = 'font-size:0.78rem;color:var(--ink3);margin-left:16px';
+        sub.textContent = task.priority.toUpperCase() + ' · ' + (task.estimatedHours||0) + ' ชั่วโมง';
+        d.appendChild(row); d.appendChild(sub);
+        c.appendChild(d);
+      });
+    }
+    document.getElementById('taskModal').style.display = 'flex';
+  };
+
+  window.showTaskDetail = function(task) {
+    var c = document.getElementById('modalContent');
+    c.innerHTML = '';
+
+    var nm = document.createElement('div');
+    nm.className = 'modal-task-name';
+    nm.textContent = task.name;
+    c.appendChild(nm);
+
+    function row(label, val) {
+      var d = document.createElement('div');
+      d.className = 'modal-row';
+      var l = document.createElement('span');
+      l.className = 'modal-label';
+      l.textContent = label;
+      var v = document.createElement('span');
+      v.className = 'modal-val';
+      v.textContent = val || '-';
+      d.appendChild(l); d.appendChild(v);
+      c.appendChild(d);
+    }
+
+    row('ประเภท', task.type);
+    row('กำหนดส่ง', task.deadline || 'ไม่ระบุ');
+    row('ระดับความสำคัญ', task.priority ? task.priority.toUpperCase() : '-');
+    row('Eisenhower Matrix', task.quadrant ? task.quadrant.toUpperCase() : '-');
+    row('เวลาที่ใช้', (task.estimatedHours||0) + ' ชั่วโมง');
+
+    if(task.description) {
+      var desc = document.createElement('div');
+      desc.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg);border-radius:var(--r);font-size:0.85rem;color:var(--ink2);line-height:1.6';
+      desc.textContent = task.description;
+      c.appendChild(desc);
+    }
+
+    document.getElementById('taskModal').style.display = 'flex';
+  };
+
+  document.getElementById('taskModal').addEventListener('click', function(e){
+    if(e.target === this) this.style.display = 'none';
+  });
+</script>
+</body>
+</html>
