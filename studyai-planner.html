@@ -205,6 +205,9 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,80,42,0.
         </div>
         <div class="ai-loading-title">AI กำลังวิเคราะห์...</div>
         <div class="ai-loading-sub" id="loadingStatus">กำลังประมวลผล Syllabus</div>
+        <div style="margin-top:1rem;font-size:0.75rem;color:var(--ink3);background:var(--bg2);padding:8px 14px;border-radius:8px;display:inline-block">
+          ครั้งแรกอาจใช้เวลา 1-2 นาที เนื่องจาก server กำลังเปิด
+        </div>
         <div class="progress-bar"><div class="progress-fill"></div></div>
       </div>
     </div>
@@ -247,6 +250,10 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,80,42,0.
   import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
   import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
   import { firebaseConfig } from './firebase-config.js';
+
+  window.API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8000'
+    : '';
 
   let app = null, db = null, auth = null;
   try {
@@ -395,8 +402,8 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,80,42,0.
         var formData = new FormData();
         formData.append('file', f);
         var controller = new AbortController();
-        var tid = setTimeout(function(){ controller.abort(); }, 90000);
-        var res = await fetch('http://127.0.0.1:8000/api/analyze-file', {method:'POST', body:formData, signal:controller.signal});
+        var tid = setTimeout(function(){ controller.abort(); }, 180000);
+        var res = await fetch(window.API_BASE + '/api/analyze-file', {method:'POST', body:formData, signal:controller.signal});
         clearTimeout(tid);
         if(!res.ok) { var e = await res.json().catch(function(){return {};}); throw new Error(e.detail || 'Error ' + res.status); }
         var data = await res.json();
@@ -411,7 +418,7 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,80,42,0.
         formData2.append('text', textInput);
         var controller2 = new AbortController();
         var tid2 = setTimeout(function(){ controller2.abort(); }, 90000);
-        var res2 = await fetch('http://127.0.0.1:8000/api/analyze-text', {method:'POST', body:formData2, signal:controller2.signal});
+        var res2 = await fetch(window.API_BASE + '/api/analyze-text', {method:'POST', body:formData2, signal:controller2.signal});
         clearTimeout(tid2);
         if(!res2.ok) { var e2 = await res2.json().catch(function(){return {};}); throw new Error(e2.detail || 'Error ' + res2.status); }
         var data2 = await res2.json();
